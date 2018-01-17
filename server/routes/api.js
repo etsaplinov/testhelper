@@ -14,7 +14,7 @@ const upload = multer(); // for parsing multipart/form-data
 
 // import { Category, Product } from '../domain/repository/dbContext';
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
@@ -34,9 +34,9 @@ let getMd5 = (source) => {
     return crypto.createHash('md5').update(source.trim().toLowerCase()).digest("hex");
 };
 
-const saveToFile = (path) => {
+const saveToFile = (filePath) => {
     return new Promise((resolve, reject) => {
-        fs.writeFile(path, JSON.stringify([...questions], null, 4), function(err) {
+        fs.writeFile(filePath, JSON.stringify([...questions], null, 4), function (err) {
             if (err) {
                 reject(err);
             }
@@ -46,18 +46,28 @@ const saveToFile = (path) => {
     });
 }
 
+const readFileToMap = (filePath) => {
+    console.log("file to map", filePath);
+    if (fs.existsSync(filePath)) {
+        var fileData = fs.readFileSync(filePath);
+        console.log("File data", JSON.parse(fileData));
+        return new Map(JSON.parse(fileData));
+    }
+    else
+        return new Map();
+}
+
 // let _filePath = path.resolve(appRoot.path, 'server', 'tests', "questions_bootstrap.json");
 let _fileName = "questions_bootstrap.json"
 
-const getFilePath = () => {
-    return path.resolve(appRoot.path, 'server', 'tests', _fileName);
+const getFilePath = (fileName) => {
+    fileName = !fileName ? _fileName : fileName;
+    return path.resolve(appRoot.path, 'server', 'tests', fileName);
 }
 
-const saveSessionsToFile = (sessionKey) => {
-    let sessionPath = path.resolve(appRoot.path, 'server', 'tests', "session_" + sessionKey + "." + _fileName);
-
+const saveMapToFile = (path, map) => {
     return new Promise((resolve, reject) => {
-        fs.writeFile(sessionPath, JSON.stringify([...session], null, 4), function(err) {
+        fs.writeFile(path, JSON.stringify([...map], null, 4), function (err) {
             if (err) {
                 reject(err);
             }
@@ -100,8 +110,8 @@ router.get('/questions/:name', (req, res) => {
             questions = new Map(JSON.parse(data));
             return res.json([...questions]);
         });
-
-    throw "Not found";
+    else
+        throw "Not found";
 });
 
 router.post('/changecorrectstate', upload.array(), (req, res) => {
@@ -167,37 +177,6 @@ router.post('/changeimsurestate', upload.array(), (req, res) => {
 
 });
 
-// router.get('/remaketests', (req, res) => {
-//     let newQuestions = new Map();
-
-//     for (let q of questions) {
-//         let question = q[0];
-
-//         newQuestions.set(getMd5(question), {
-//             question,
-//             note: q[1].note,
-//             answers: q[1].answers.map((answer) => {
-//                 return {
-//                     md5: getMd5(answer.answer),
-//                     answer: answer.answer.trim(),
-//                     isCorrect: answer.isCorrect
-//                 }
-//             })
-
-//         })
-//     }
-
-//     fs.writeFile(filePath + '.new', JSON.stringify([...newQuestions], null, 4), function(err) {
-//         if (err) {
-//             return res.json({ error: err });
-//         }
-
-//         return res.json([...newQuestions]);
-//     });
-
-
-// })
-
 router.post('/question', upload.array(), (req, res) => {
 
     console.log(req.body);
@@ -218,15 +197,37 @@ router.post('/question', upload.array(), (req, res) => {
         });
     });
 
+    let pathToQuestions = getFilePath("questions_" + body.testname + ".json");
+    let pathToSession = getFilePath(`session_${body.sessionKey}.questions_${body.testname}.json`);
 
+    let localQuestions = readFileToMap(pathToQuestions);
+    let session = readFileToMap(pathToSession);
 
+    console.log(pathToQuestions);
+    console.log(pathToSession);
+    // console.log(JSON.stringify([...localQuestions]));
+    // console.log(JSON.stringify([...session]));
 
+    let result = { message: "" };
 
-    if (questions.has(questionKey)) {
+    //add question into questions
+    if (!localQuestions.has(questionKey)) {
+        localQuestions.set(questionKey, {
+            question: body.question.trim(),
+            note: body.note,
+            answers
+        });
+        result.isExists = false;
+        result.message = "Question not found";
 
+        saveMapToFile(pathToQuestions, localQuestions).catch(err => {
+            throw err;
+        });
+    }
+    else {
         let correctAnswers = [];
 
-        let answersDb = questions.get(questionKey).answers;
+        let answersDb = localQuestions.get(questionKey).answers;
 
         answers.map((answer, index) => {
             answersDb.map((answerDb) => {
@@ -235,31 +236,16 @@ router.post('/question', upload.array(), (req, res) => {
             });
         });
 
-        session.set(questionKey, questions.get(questionKey));
-        saveSessionsToFile(body.sessionKey);
+        result.isExists = true;
+        result.correctAnswers = correctAnswers;
+        result.message = "Question exist";
 
-        return res.json({ message: "Question exist", isExists: true, correctAnswers });
     }
 
-
-
-    questions.set(questionKey, {
-        question: body.question.trim(),
-        note: body.note,
-        answers
-    });
-
-    session.set(questionKey, questions.get(questionKey));
-
-    saveSessionsToFile(body.sessionKey);
-
-    console.log(JSON.stringify([...questions]));
-
-    return saveToFile(getFilePath()).then(() => {
-        return res.json({ message: "fileSaved", params: body });
-    }).catch(err => {
-        return res.json({ error: err });
-    })
+    session.set(questionKey, localQuestions.get(questionKey));
+    saveMapToFile(pathToSession, session);
+    console.log(result);
+    return res.json(result);
 });
 
 module.exports = router;

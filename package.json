@@ -23,6 +23,8 @@
     "scripts": {
         "start": "react-scripts start",
         "start:server": "NODE_ENV=development nodemon server",
+        "start:serverw": "set NODE_ENV=development&& nodemon server",
+        "start:serverwd": "set NODE_ENV=development&& nodemon --inspect server",
         "start:serverdebug": "NODE_ENV=development nodemon --inspect server",
         "build": "react-scripts build",
         "test": "react-scripts test --env=jsdom",
