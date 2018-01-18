@@ -16,13 +16,13 @@ class Questions extends Component {
     handleAnswerChange = (questionKey, answer) =>{
 
         console.log("changeCorrectState fired");
-         this.props.changeAnswerCorrectState(questionKey, answer.md5, !answer.isCorrect);
+         this.props.changeAnswerCorrectState(questionKey, answer.md5, !answer.isCorrect, this.props.test_name);
     }
 
     handleIAmSureInAnswerChange = (questionKey, IAmSureInAnswer) =>{
 
         console.log("IAmSureInAnswer fired");
-         this.props.changeIAmSureInAnswerState(questionKey, IAmSureInAnswer);
+         this.props.changeIAmSureInAnswerState(questionKey, IAmSureInAnswer, this.props.test_name);
     }
 
     render() {
@@ -37,6 +37,7 @@ class Questions extends Component {
                         {this.props.questions.map((test, index)=>{
                             return <Question 
                                         num={index+1}
+                                        testName={this.props.test_name}
                                         question={test[1].question}
                                         iAmSureInAnswer={test[1].iAmSureInAnswer} 
                                         md5={test[0]} 
