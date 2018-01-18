@@ -57,7 +57,7 @@ const questionsReducer = (state = { test_name: 'questions_bootstrap.json', fetch
         case FETCH_TEST_SUCCESS:
             return Object.assign({}, {
                 fetch_status: 'fetch_success',
-                test_name: state.test_name,
+                test_name: action.testName,
                 items: new Map(action.payload)
             });
         case CHANGE_I_AM_SURE_IN_ANSWER_STATE:

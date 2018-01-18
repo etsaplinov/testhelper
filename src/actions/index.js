@@ -13,27 +13,30 @@ export let fetchTestRequest = (testName) => {
         testName: testName
     };
 };
-export let fetchTestSuccess = (questions) => {
+export let fetchTestSuccess = (questions, testName) => {
     return {
         type: FETCH_TEST_SUCCESS,
-        payload: questions
+        payload: questions,
+        testName
     };
 };
 
-export let changeAnswerCorrectState = (questionKey, answerKey, isCorrect) => {
+export let changeAnswerCorrectState = (questionKey, answerKey, isCorrect, testName) => {
     return {
         type: CHANGE_ANSWER_CORRECT_STATE,
         questionKey,
         answerKey,
-        isCorrect
+        isCorrect,
+        testName
     };
 };
 
-export let changeIAmSureInAnswerState = (questionKey, iAmSureInAnswer) => {
+export let changeIAmSureInAnswerState = (questionKey, iAmSureInAnswer, testName) => {
     return {
         type: CHANGE_I_AM_SURE_IN_ANSWER_STATE,
         questionKey,
-        iAmSureInAnswer
+        iAmSureInAnswer,
+        testName
     };
 };
 

@@ -18,7 +18,7 @@ function* loadTestAsync(action) {
         return tests;
     });
 
-    yield put(fetchTestSuccess(tests));
+    yield put(fetchTestSuccess(tests, action.testName));
 
 }
 
@@ -40,7 +40,8 @@ function* changeAnswerCorrectStateAsync(action) {
     var payload = {
         questionKey: action.questionKey,
         answerKey: action.answerKey,
-        isCorrect: action.isCorrect
+        isCorrect: action.isCorrect,
+        testName: action.testName
     };
 
     var data = new FormData();
@@ -59,7 +60,8 @@ function* changeIAmSureInAnswerStateAsync(action) {
 
     var payload = {
         questionKey: action.questionKey,
-        iAmSureInAnswer: action.iAmSureInAnswer
+        iAmSureInAnswer: action.iAmSureInAnswer,
+        testName: action.testName
     };
 
     var data = new FormData();

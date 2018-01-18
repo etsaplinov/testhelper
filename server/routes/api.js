@@ -13,7 +13,7 @@ const upload = multer(); // for parsing multipart/form-data
 
 // import { Category, Product } from '../domain/repository/dbContext';
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
@@ -61,7 +61,11 @@ let getMd5 = (source) => {
 
 const saveToFile = (filePath) => {
     return new Promise((resolve, reject) => {
+<<<<<<< HEAD
         fs.writeFile(filePath + ".cr", encrypt(JSON.stringify([...questions])), function (err) {
+=======
+        fs.writeFile(filePath, JSON.stringify([...questions], null, 4), function(err) {
+>>>>>>> cb1757cd6029127cf0f6482139e38a32151f1554
             if (err) {
                 reject(err);
             }
@@ -77,8 +81,7 @@ const readFileToMap = (filePath) => {
         var fileData = fs.readFileSync(filePath);
         console.log("File data", JSON.parse(fileData));
         return new Map(JSON.parse(fileData));
-    }
-    else
+    } else
         return new Map();
 }
 
@@ -92,7 +95,7 @@ const getFilePath = (fileName) => {
 
 const saveMapToFile = (path, map) => {
     return new Promise((resolve, reject) => {
-        fs.writeFile(path, JSON.stringify([...map], null, 4), function (err) {
+        fs.writeFile(path, JSON.stringify([...map], null, 4), function(err) {
             if (err) {
                 reject(err);
             }
@@ -151,12 +154,20 @@ router.post('/changecorrectstate', upload.array(), (req, res) => {
         let {
             questionKey,
             answerKey,
-            isCorrect
+            isCorrect,
+            testName
         } = body;
+
+        let pathToQuestions = getFilePath(testName);
+        let localQuestions = readFileToMap(pathToQuestions);
 
         // console.log(questionKey, answerKey, isCorrect);
 
+<<<<<<< HEAD
         let question = questions.get(questionKey);
+=======
+        var question = localQuestions.get(questionKey);
+>>>>>>> cb1757cd6029127cf0f6482139e38a32151f1554
 
         for (let a of question.answers) {
             if (a.md5 === answerKey) {
@@ -165,9 +176,9 @@ router.post('/changecorrectstate', upload.array(), (req, res) => {
             }
         }
 
-        questions.set(questionKey, question);
+        localQuestions.set(questionKey, question);
 
-        return saveToFile(getFilePath()).then(() => {
+        return saveMapToFile(pathToQuestions, localQuestions).then(() => {
             return res.json({ success: true });
         }).catch(err => { throw err; });
     } catch (ex) {
@@ -185,17 +196,20 @@ router.post('/changeimsurestate', upload.array(), (req, res) => {
 
         let {
             questionKey,
-            iAmSureInAnswer
+            iAmSureInAnswer,
+            testName
         } = body;
 
-        // console.log(questionKey, answerKey, isCorrect);
+        let pathToQuestions = getFilePath(testName);
+        let localQuestions = readFileToMap(pathToQuestions);
 
-        var question = questions.get(questionKey);
+        var question = localQuestions.get(questionKey);
+
         question["iAmSureInAnswer"] = iAmSureInAnswer;
 
         questions.set(questionKey, question);
 
-        return saveToFile(getFilePath()).then(() => {
+        return saveMapToFile(pathToQuestions, localQuestions).then(() => {
             return res.json({ success: true });
         }).catch(err => { throw err; });
     } catch (ex) {
@@ -250,8 +264,7 @@ router.post('/question', upload.array(), (req, res) => {
         saveMapToFile(pathToQuestions, localQuestions).catch(err => {
             throw err;
         });
-    }
-    else {
+    } else {
         let correctAnswers = [];
 
         let answersDb = localQuestions.get(questionKey).answers;
