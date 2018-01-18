@@ -6,7 +6,6 @@ const router = express.Router();
 // const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const appRoot = require('app-root-path');
 const multer = require('multer'); // v1.0.5
 const upload = multer(); // for parsing multipart/form-data
@@ -20,6 +19,32 @@ router.use(function (req, res, next) {
     next();
 });
 
+var crypto = require('crypto'),
+    algorithm = 'aes-256-ctr',
+    password = '';
+
+let passFilePath = path.resolve(appRoot.path, 'server', 'cryptpass.txt');
+if (fs.existsSync(passFilePath)) {
+    password = fs.readFileSync(passFilePath);
+}
+else
+    throw "Password not found";
+
+
+function encrypt(text) {
+    var cipher = crypto.createCipher(algorithm, password)
+    var crypted = cipher.update(text, 'utf8', 'hex')
+    crypted += cipher.final('hex');
+    return crypted;
+}
+
+function decrypt(text) {
+    var decipher = crypto.createDecipher(algorithm, password)
+    var dec = decipher.update(text, 'hex', 'utf8')
+    dec += decipher.final('utf8');
+    return dec;
+}
+
 
 // app.use(cors());
 // app.use(bodyParser.json()); // for parsing application/json
@@ -27,8 +52,8 @@ router.use(function (req, res, next) {
 
 
 
-let questions = new Map();
-let session = new Map();
+// let questions = new Map();
+// let session = new Map();
 
 let getMd5 = (source) => {
     return crypto.createHash('md5').update(source.trim().toLowerCase()).digest("hex");
@@ -36,7 +61,7 @@ let getMd5 = (source) => {
 
 const saveToFile = (filePath) => {
     return new Promise((resolve, reject) => {
-        fs.writeFile(filePath, JSON.stringify([...questions], null, 4), function (err) {
+        fs.writeFile(filePath + ".cr", encrypt(JSON.stringify([...questions])), function (err) {
             if (err) {
                 reject(err);
             }
@@ -58,7 +83,7 @@ const readFileToMap = (filePath) => {
 }
 
 // let _filePath = path.resolve(appRoot.path, 'server', 'tests', "questions_bootstrap.json");
-let _fileName = "questions_bootstrap.json"
+// let _fileName = "questions_bootstrap.json"
 
 const getFilePath = (fileName) => {
     fileName = !fileName ? _fileName : fileName;
@@ -78,13 +103,13 @@ const saveMapToFile = (path, map) => {
 }
 
 
-if (fs.existsSync(getFilePath()))
-    fs.readFile(getFilePath(), (err, data) => {
-        if (err) throw err;
-        questions = new Map(JSON.parse(data));
-        //console.log(JSON.stringify([...questions]));
-        console.log(`Tests count = ${questions.size}`);
-    });
+// if (fs.existsSync(getFilePath()))
+//     fs.readFile(getFilePath(), (err, data) => {
+//         if (err) throw err;
+//         questions = new Map(JSON.parse(data));
+//         //console.log(JSON.stringify([...questions]));
+//         console.log(`Tests count = ${questions.size}`);
+//     });
 
 router.get('/', (req, res) => {
     res.send('Hello World!');
@@ -102,16 +127,18 @@ router.get('/tests', (req, res) => {
 });
 
 router.get('/questions/:name', (req, res) => {
-    _fileName = req.params.name;
-    session = new Map();
-    if (fs.existsSync(getFilePath()))
-        fs.readFile(getFilePath(), (err, data) => {
-            if (err) throw err;
-            questions = new Map(JSON.parse(data));
-            return res.json([...questions]);
-        });
-    else
-        throw "Not found";
+    let fileName = req.params.name;
+    let questions = readFileToMap(getFilePath(fileName));
+    return res.json([...questions]);
+
+    // if (fs.existsSync(getFilePath()))
+    //     fs.readFile(getFilePath(), (err, data) => {
+    //         if (err) throw err;
+    //         questions = new Map(JSON.parse(data));
+    //         return res.json([...questions]);
+    //     });
+    // else
+    //     throw "Not found";
 });
 
 router.post('/changecorrectstate', upload.array(), (req, res) => {
@@ -129,7 +156,7 @@ router.post('/changecorrectstate', upload.array(), (req, res) => {
 
         // console.log(questionKey, answerKey, isCorrect);
 
-        var question = questions.get(questionKey);
+        let question = questions.get(questionKey);
 
         for (let a of question.answers) {
             if (a.md5 === answerKey) {

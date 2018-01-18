@@ -22,3 +22,4 @@ yarn-error.log*
 
 /server/tests
 package-lock.json
+cryptpass.txt
