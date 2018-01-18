@@ -5,7 +5,7 @@ import {
     CHANGE_I_AM_SURE_IN_ANSWER_STATE
 } from '../actionTypes';
 
-const questionsReducer = (state = { test_name: 'questions_bootstrap.json', fetch_status: 'empty', items: [] }, action) => {
+const questionsReducer = (state = { test_name: 'questions_bootstrap.json.cr', fetch_status: 'empty', items: [] }, action) => {
 
     let changeCorrectState = (state, questionKey, answerKey, isCorrect) => {
 

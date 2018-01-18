@@ -13,7 +13,7 @@ const upload = multer(); // for parsing multipart/form-data
 
 // import { Category, Product } from '../domain/repository/dbContext';
 
-router.use(function(req, res, next) {
+router.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
@@ -25,7 +25,7 @@ var crypto = require('crypto'),
 
 let passFilePath = path.resolve(appRoot.path, 'server', 'cryptpass.txt');
 if (fs.existsSync(passFilePath)) {
-    password = fs.readFileSync(passFilePath);
+    password = fs.readFileSync(passFilePath).toString();
 }
 else
     throw "Password not found";
@@ -59,26 +59,13 @@ let getMd5 = (source) => {
     return crypto.createHash('md5').update(source.trim().toLowerCase()).digest("hex");
 };
 
-const saveToFile = (filePath) => {
-    return new Promise((resolve, reject) => {
-<<<<<<< HEAD
-        fs.writeFile(filePath + ".cr", encrypt(JSON.stringify([...questions])), function (err) {
-=======
-        fs.writeFile(filePath, JSON.stringify([...questions], null, 4), function(err) {
->>>>>>> cb1757cd6029127cf0f6482139e38a32151f1554
-            if (err) {
-                reject(err);
-            }
-
-            resolve();
-        });
-    });
-}
 
 const readFileToMap = (filePath) => {
     console.log("file to map", filePath);
     if (fs.existsSync(filePath)) {
         var fileData = fs.readFileSync(filePath);
+        if (filePath.endsWith(".cr"))
+            fileData = decrypt(fileData.toString());
         console.log("File data", JSON.parse(fileData));
         return new Map(JSON.parse(fileData));
     } else
@@ -90,12 +77,12 @@ const readFileToMap = (filePath) => {
 
 const getFilePath = (fileName) => {
     fileName = !fileName ? _fileName : fileName;
-    return path.resolve(appRoot.path, 'server', 'tests', fileName);
+    return path.resolve(appRoot.path, 'server', 'encryptedtests', fileName);
 }
 
 const saveMapToFile = (path, map) => {
     return new Promise((resolve, reject) => {
-        fs.writeFile(path, JSON.stringify([...map], null, 4), function(err) {
+        fs.writeFile(path + ".cr", encrypt(JSON.stringify([...map])), function (err) {
             if (err) {
                 reject(err);
             }
@@ -120,10 +107,10 @@ router.get('/', (req, res) => {
 
 router.get('/tests', (req, res) => {
     res.json({
-        tests: fs.readdirSync(path.resolve(appRoot.path, 'server', 'tests')).filter(file => {
+        tests: fs.readdirSync(path.resolve(appRoot.path, 'server', 'encryptedtests')).filter(file => {
             return file.startsWith('questions_');
         }),
-        sessions: fs.readdirSync(path.resolve(appRoot.path, 'server', 'tests')).filter(file => {
+        sessions: fs.readdirSync(path.resolve(appRoot.path, 'server', 'encryptedtests')).filter(file => {
             return file.startsWith('session_');
         })
     });
@@ -163,11 +150,7 @@ router.post('/changecorrectstate', upload.array(), (req, res) => {
 
         // console.log(questionKey, answerKey, isCorrect);
 
-<<<<<<< HEAD
-        let question = questions.get(questionKey);
-=======
         var question = localQuestions.get(questionKey);
->>>>>>> cb1757cd6029127cf0f6482139e38a32151f1554
 
         for (let a of question.answers) {
             if (a.md5 === answerKey) {
