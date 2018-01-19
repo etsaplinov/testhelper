@@ -13,7 +13,7 @@ const upload = multer(); // for parsing multipart/form-data
 
 // import { Category, Product } from '../domain/repository/dbContext';
 
-router.use(function (req, res, next) {
+router.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
@@ -26,8 +26,7 @@ var crypto = require('crypto'),
 let passFilePath = path.resolve(appRoot.path, 'server', 'cryptpass.txt');
 if (fs.existsSync(passFilePath)) {
     password = fs.readFileSync(passFilePath).toString();
-}
-else
+} else
     throw "Password not found";
 
 
@@ -82,7 +81,7 @@ const getFilePath = (fileName) => {
 
 const saveMapToFile = (path, map) => {
     return new Promise((resolve, reject) => {
-        fs.writeFile(path + ".cr", encrypt(JSON.stringify([...map])), function (err) {
+        fs.writeFile(path, encrypt(JSON.stringify([...map])), function(err) {
             if (err) {
                 reject(err);
             }
