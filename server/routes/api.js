@@ -220,8 +220,8 @@ router.post('/question', upload.array(), (req, res) => {
         });
     });
 
-    let pathToQuestions = getFilePath("questions_" + body.testname + ".json");
-    let pathToSession = getFilePath(`session_${body.sessionKey}.questions_${body.testname}.json`);
+    let pathToQuestions = getFilePath("questions_" + body.testname + ".json.cr");
+    let pathToSession = getFilePath(`session_${body.sessionKey}.questions_${body.testname}.json.cr`);
 
     let localQuestions = readFileToMap(pathToQuestions);
     let session = readFileToMap(pathToSession);
